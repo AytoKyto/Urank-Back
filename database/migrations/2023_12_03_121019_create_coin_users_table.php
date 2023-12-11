@@ -1,27 +1,27 @@
 <?php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateUserPaymentsTable extends Migration
+class CreateCoinUsersTable extends Migration
 {
     public function up()
     {
-        Schema::create('user_payments', function (Blueprint $table) {
+        Schema::create('coin_users', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('user_id');
-            $table->string('status'); // Enum géré comme string
-            $table->decimal('amount', 10, 2);
-            $table->string('method', 50);
-            $table->dateTime('payment_date');
+            $table->unsignedBigInteger('product_id')->nullable();
+            $table->integer('value');
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('product_id')->references('id')->on('product_store')->onDelete('set null');
         });
     }
 
     public function down()
     {
-        Schema::dropIfExists('user_payments');
+        Schema::dropIfExists('coin_users');
     }
 }

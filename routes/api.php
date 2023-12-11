@@ -9,6 +9,8 @@ use App\Http\Controllers\LeagueUserController;
 use App\Http\Controllers\DuelController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashController;
+use App\Http\Controllers\StoreController;
+
 
 /*
 |--------------------------------------------------------------------------
@@ -47,3 +49,7 @@ Route::resource('duels', DuelController::class);
 
 // Routes pour le modèle Dash
 Route::get('dash/{query_value}', [DashController::class, 'index']);
+
+// Routes pour le modèle Store
+Route::get('store/{user_id}', [StoreController::class, 'index']);
+Route::post('store/by-product', [StoreController::class, 'byProduct']);

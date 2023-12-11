@@ -1,27 +1,30 @@
 <?php
 
-// app/Models/Duel.php
-
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Duel extends Model {
+class Duel extends Model
+{
     use HasFactory;
 
-    protected $table = 'duels';
-    protected $fillable = ['league_id', 'winner_user_id', 'winner_score', 'winner_score_value', 'loser_user_id', 'loser_score', 'loser_score_value', 'description'];
+    protected $fillable = [
+        'league_id',
+        'author_id',
+        'description'
+    ];
 
     public function league() {
-        return $this->belongsTo(League::class, 'league_id');
+        return $this->belongsTo(League::class);
     }
 
-    public function winnerUser() {
-        return $this->belongsTo(User::class, 'winner_user_id');
+    public function author() {
+        return $this->belongsTo(User::class, 'author_id');
     }
 
-    public function loserUser() {
-        return $this->belongsTo(User::class, 'loser_user_id');
+    // Si vous avez des relations avec DuelUser
+    public function matchUsers() {
+        return $this->hasMany(DuelUser::class);
     }
 }

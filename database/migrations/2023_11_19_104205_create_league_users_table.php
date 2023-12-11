@@ -13,6 +13,7 @@ class CreateLeagueUsersTable extends Migration {
             $table->unsignedBigInteger('user_id');
             $table->unsignedBigInteger('league_id');
             $table->integer('elo');
+            $table->integer('type')->default(1); // 0 = player, 1 = inviter, 2 = admin
             $table->timestamps();
 
             $table->foreign('user_id')->references('id')->on('users');

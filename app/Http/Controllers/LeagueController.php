@@ -42,7 +42,7 @@ class LeagueController extends Controller {
 
     public function show($id) {
         try {
-            $league = League::findOrFail($id);
+           
 
             $user_league_data = LeagueUser::where('league_id', $id)
                 ->orderBy('elo', 'desc')
@@ -53,7 +53,6 @@ class LeagueController extends Controller {
                 ->get();
 
             $data[] = [
-                'league' => $league,
                 'user_league_data' => $user_league_data,
                 'duel_data' => $duel_data
             ];

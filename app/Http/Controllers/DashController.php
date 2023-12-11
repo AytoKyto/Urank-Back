@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\LeagueUser;
+use App\Models\League;
 use App\Models\Duel;
 
 class DashController extends Controller
@@ -17,11 +18,21 @@ class DashController extends Controller
             // Get data from query name
             parse_str($query_value, $query_data);
 
+            $global_stats = DB::table('user_stats_global_view')
+                ->where('user_id', $query_data['user_id'])
+                ->first();
 
             // Récupérer les 3 premières ligues avec l'utilisateur ayant la meilleure activité
-            $league_user_data = LeagueUser::where('user_id', $query_data['user_id'])
+            $subQuery = LeagueUser::where('user_id', $query_data['user_id'])
                 ->orderByDesc('created_at')
-                ->take(3)
+                ->take(3);
+
+            $league_user_data = LeagueUser::fromSub($subQuery, 'sub')
+                ->groupBy('league_id')
+                ->get(['league_id']);
+
+
+            $league = League::whereIn('id', $league_user_data->pluck('league_id'))
                 ->get();
 
             // Récupérer les 3 premiers duels de l'utilisateur en tant que gagnant ou perdant
@@ -34,12 +45,14 @@ class DashController extends Controller
                 ->get();
 
 
+
             // Vérifier si toutes les données sont définies
             return response()->json([
                 'status' => true,
                 'message' => 'Requête effectuée avec succès',
-                'league_user_data' => $league_user_data,
-                'duel_data' => $duel_data,
+                'globalStats' => $global_stats, 
+                'league' => $league,
+                'duelData' => $duel_data,
             ], 200);
         } catch (\Exception $e) {
             // Retourner une erreur en cas d'exception
