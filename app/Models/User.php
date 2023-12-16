@@ -23,7 +23,11 @@ class User extends Authenticatable
         'password',
         'coins',
         'status',
-        'type'
+        'type',
+        'avatar',
+        'bg_color',
+        'bg_avatar',
+        'border_avatar'
     ];
 
     public function payments() {
