@@ -4,12 +4,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use App\Models\League;
 use App\Models\LeagueUser;
 use App\Models\Duel;
+use Illuminate\Support\Facades\Auth;
+use App\Services\GetDataService;
 
-class LeagueController extends Controller {
-    public function index() {
+class LeagueController extends Controller
+{
+    protected $getDataService;
+
+    public function __construct(GetDataService $getDataService)
+    {
+        $this->getDataService = $getDataService;
+    }
+
+    public function index()
+    {
         try {
             $leagues = League::all();
             return response()->json([
@@ -25,7 +37,8 @@ class LeagueController extends Controller {
     }
 
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
         try {
             $league = League::create($request->all());
             return response()->json([
@@ -40,21 +53,27 @@ class LeagueController extends Controller {
         }
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         try {
-           
+            $userId = Auth::id();
 
-            $user_league_data = LeagueUser::where('league_id', $id)
-                ->orderBy('elo', 'desc')
+            $league_data = League::where('id', $id)
                 ->get();
 
-            $duel_data = Duel::where('league_id', $id)
-                ->orderBy('created_at', 'desc')
-                ->get();
+            $league = $this->getDataService->leagueCard($userId, 3);
+            $duel_data = $this->getDataService->duelCard($userId, 4);
+
+            $global_stats = DB::table('view_league_stats')
+                ->where('user_id', $userId)
+                ->where('league_id', $id)
+                ->first();
 
             $data[] = [
-                'user_league_data' => $user_league_data,
-                'duel_data' => $duel_data
+                'league_data' => $league_data,
+                'user_league_data' => $league,
+                'duel_data' => $duel_data,
+                'global_stats' => $global_stats
             ];
 
             return response()->json([
@@ -70,7 +89,8 @@ class LeagueController extends Controller {
         }
     }
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         try {
             $league = League::findOrFail($id);
             $league->update($request->all());
@@ -86,7 +106,8 @@ class LeagueController extends Controller {
         }
     }
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
         try {
             $league = League::findOrFail($id);
             $league->delete();

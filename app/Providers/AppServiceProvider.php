@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Services\RankingService;
+use App\Services\GetDataService;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -14,6 +15,9 @@ class AppServiceProvider extends ServiceProvider
     {
         $this->app->singleton(RankingService::class, function ($app) {
             return new RankingService();
+        });
+        $this->app->singleton(GetDataService::class, function ($app) {
+            return new GetDataService();
         });
     }
 

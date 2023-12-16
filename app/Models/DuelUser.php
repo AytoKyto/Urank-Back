@@ -19,15 +19,20 @@ class DuelUser extends Model
         'status'
     ];
 
-    public function user() {
+    protected $with = ['user'];
+
+    public function user()
+    {
         return $this->belongsTo(User::class);
     }
 
-    public function match() {
+    public function match()
+    {
         return $this->belongsTo(Duel::class);
     }
 
-    public function league() {
+    public function league()
+    {
         return $this->belongsTo(League::class);
     }
 }

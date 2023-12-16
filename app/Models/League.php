@@ -13,6 +13,8 @@ class League extends Model {
     protected $table = 'leagues';
     protected $fillable = ['icon', 'name', 'admin_user_id'];
 
+    protected $with = ['adminUser'];
+
     public function adminUser() {
         return $this->belongsTo(User::class, 'admin_user_id');
     }

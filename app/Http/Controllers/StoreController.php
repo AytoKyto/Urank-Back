@@ -3,16 +3,19 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use App\Models\ProductStore;
 use App\Models\CoinUser;
 use App\Models\User;
 
 class StoreController extends Controller
 {
-    public function index($user_id)
+    public function index()
     {
         try {
-            $transaction = CoinUser::where('user_id', $user_id)
+            $userId = Auth::id();
+
+            $transaction = CoinUser::where('user_id', $userId)
                 ->with('product_id')
                 ->get();
 

@@ -12,6 +12,7 @@ use App\Http\Controllers\DashController;
 use App\Http\Controllers\StoreController;
 
 
+
 /*
 |--------------------------------------------------------------------------
 | API Routes
@@ -23,15 +24,15 @@ use App\Http\Controllers\StoreController;
 |
 */
 
-//Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
-//    return $request->user();
-//});
+Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
+   return $request->user();
+});
 
 // Routes pour l'authentification
 Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 
-
+Route::middleware('auth:sanctum')->group(function () {
 // Routes pour le modèle User
 Route::resource('users', UserController::class);
 
@@ -48,8 +49,9 @@ Route::resource('league-users', LeagueUserController::class);
 Route::resource('duels', DuelController::class);
 
 // Routes pour le modèle Dash
-Route::get('dash/{query_value}', [DashController::class, 'index']);
+Route::get('dash', [DashController::class, 'index']);
 
 // Routes pour le modèle Store
-Route::get('store/{user_id}', [StoreController::class, 'index']);
+Route::get('store', [StoreController::class, 'index']);
 Route::post('store/by-product', [StoreController::class, 'byProduct']);
+});

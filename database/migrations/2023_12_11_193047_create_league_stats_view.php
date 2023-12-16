@@ -40,7 +40,8 @@ return new class extends Migration
              COUNT(DISTINCT duel.duel_id) AS nb_duel,
              SUM(CASE WHEN duel.status = 1 THEN 1 ELSE 0 END) AS nb_win,
              SUM(CASE WHEN duel.status = 0 THEN 1 ELSE 0 END) AS nb_lose,
-             SUM(CASE WHEN duel.status = 0.5 THEN 1 ELSE 0 END) AS nb_null
+             SUM(CASE WHEN duel.status = 0.5 THEN 1 ELSE 0 END) AS nb_null,
+             SUM(CASE WHEN duel.status = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT duel.duel_id) * 100 AS win_rate
          FROM league_users
          LEFT JOIN duel_users AS duel
              ON league_users.user_id = duel.user_id

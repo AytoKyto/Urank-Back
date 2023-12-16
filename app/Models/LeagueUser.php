@@ -13,6 +13,8 @@ class LeagueUser extends Model {
     protected $table = 'league_users';
     protected $fillable = ['user_id', 'league_id', 'elo', 'type'];
 
+    protected $with = ['user'];
+
     public function user() {
         return $this->belongsTo(User::class, 'user_id');
     }

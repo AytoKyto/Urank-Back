@@ -5,52 +5,36 @@ namespace App\Http\Controllers;
 use Illuminate\Support\Facades\DB;
 use App\Models\LeagueUser;
 use App\Models\League;
-use App\Models\Duel;
+use App\Services\GetDataService;
+use Illuminate\Support\Facades\Auth;
 
 class DashController extends Controller
 {
-    public function index($query_value)
+
+    protected $getDataService;
+
+    public function __construct(GetDataService $getDataService)
+    {
+        $this->getDataService = $getDataService;
+    }
+
+    public function index()
     {
         try {
+            $userId = Auth::id();
             // Get the query value
-            $query_value = request('query_value');
-
-            // Get data from query name
-            parse_str($query_value, $query_data);
-
-            $global_stats = DB::table('user_stats_global_view')
-                ->where('user_id', $query_data['user_id'])
+            $global_stats = DB::table('view_global_stats')
+                ->where('user_id', $userId)
                 ->first();
 
-            // Récupérer les 3 premières ligues avec l'utilisateur ayant la meilleure activité
-            $subQuery = LeagueUser::where('user_id', $query_data['user_id'])
-                ->orderByDesc('created_at')
-                ->take(3);
-
-            $league_user_data = LeagueUser::fromSub($subQuery, 'sub')
-                ->groupBy('league_id')
-                ->get(['league_id']);
-
-
-            $league = League::whereIn('id', $league_user_data->pluck('league_id'))
-                ->get();
-
-            // Récupérer les 3 premiers duels de l'utilisateur en tant que gagnant ou perdant
-            $duel_data = Duel::where(function ($query) use ($query_data) {
-                $query->where('winner_user_id', $query_data['user_id'])
-                    ->orWhere('loser_user_id', $query_data['user_id']);
-            })
-                ->orderByDesc('created_at')
-                ->take(3)
-                ->get();
-
-
+            $league = $this->getDataService->leagueCard($userId, 4);
+            $duel_data = $this->getDataService->duelCard($userId, 4);
 
             // Vérifier si toutes les données sont définies
             return response()->json([
                 'status' => true,
                 'message' => 'Requête effectuée avec succès',
-                'globalStats' => $global_stats, 
+                'globalStats' => $global_stats,
                 'league' => $league,
                 'duelData' => $duel_data,
             ], 200);
