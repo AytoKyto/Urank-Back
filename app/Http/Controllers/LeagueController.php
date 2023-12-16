@@ -69,17 +69,12 @@ class LeagueController extends Controller
                 ->where('league_id', $id)
                 ->first();
 
-            $data[] = [
+            return response()->json([
+                'message' => 'League retrieved successfully',
                 'league_data' => $league_data,
                 'user_league_data' => $league,
                 'duel_data' => $duel_data,
                 'global_stats' => $global_stats
-            ];
-
-            return response()->json([
-                'message' => 'League retrieved successfully',
-                'nbr' => count($data),
-                'data' => $data,
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([

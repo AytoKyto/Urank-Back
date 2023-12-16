@@ -3,8 +3,6 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\DB;
-use App\Models\LeagueUser;
-use App\Models\League;
 use App\Services\GetDataService;
 use Illuminate\Support\Facades\Auth;
 

@@ -15,6 +15,7 @@ class CreateDuelUsersTable extends Migration
             $table->unsignedBigInteger('league_id');
             $table->bigInteger('league_user_elo_init');
             $table->bigInteger('league_user_elo_add');
+            $table->integer('coin')->nullable();
             $table->integer('status'); // 1 == win || 0.5 == null || 0 == loose
             $table->timestamps();
 

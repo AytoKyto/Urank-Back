@@ -14,6 +14,7 @@ class DuelUser extends Model
         'duel_id',
         'ranking',
         'league_id',
+        'coin',
         'league_user_elo_init',
         'league_user_elo_add',
         'status'

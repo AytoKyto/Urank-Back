@@ -12,6 +12,7 @@ use App\Models\LeagueUser;
 use App\Models\CoinUser;
 use Illuminate\Support\Facades\DB;
 use App\Services\RankingService;
+use Illuminate\Support\Facades\Auth;
 
 class DuelController extends Controller
 {
@@ -101,14 +102,7 @@ class DuelController extends Controller
     private function processDuelUsers($users, $duel, $validatedData, $eloChange, $isWinner, $league_user_count)
     {
         foreach ($users as $value) {
-            DuelUser::create([
-                'user_id' => $value['id'],
-                'duel_id' => $duel->id,
-                'league_id' => $validatedData['league_id'],
-                'league_user_elo_init' => $value['elo'],
-                'league_user_elo_add' => $eloChange,
-                'status' => $isWinner ? ($validatedData['is_null'] ? 0.5 : 1) : 0
-            ]);
+
 
             $league_user = LeagueUser::where('user_id', $value['id'])
                 ->where('league_id', $validatedData['league_id'])
@@ -120,6 +114,16 @@ class DuelController extends Controller
             }
 
             $coinValue = max(0, round($eloChange / 3 * ($league_user_count / 2)));
+            DuelUser::create([
+                'user_id' => $value['id'],
+                'duel_id' => $duel->id,
+                'league_id' => $validatedData['league_id'],
+                'league_user_elo_init' => $value['elo'],
+                'league_user_elo_add' => $eloChange,
+                'coin' => $coinValue,
+                'status' => $isWinner ? ($validatedData['is_null'] ? 0.5 : 1) : 0
+            ]);
+
             CoinUser::create([
                 'user_id' => $value['id'],
                 'value' => $coinValue,
@@ -136,10 +140,21 @@ class DuelController extends Controller
     public function show($id)
     {
         try {
+            $userId = Auth::id();
             $duel = Duel::findOrFail($id);
+            $duel_users = DuelUser::where('duel_id', $duel->id)->get();
+            
+            $duel_user_main = $duel_users->filter(function($item) use ($userId) {
+                return $item->user_id === $userId;
+            });
+            
+
             return response()->json([
                 'message' => 'Duel retrieved successfully',
-                'duel' => $duel
+                'duel' => $duel,
+                'duel_users' => $duel_users,
+                'nbr_users' => count($duel_users),
+                'duel_user_main' => $duel_user_main,
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
