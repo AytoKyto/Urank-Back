@@ -10,9 +10,17 @@ use App\Models\Duel;
 use App\Models\DuelUser;
 use App\Models\LeagueUser;
 use App\Models\CoinUser;
+use Illuminate\Support\Facades\DB;
+use App\Services\RankingService;
 
 class DuelController extends Controller
 {
+    protected $rankingService;
+
+    public function __construct(RankingService $rankingService)
+    {
+        $this->rankingService = $rankingService;
+    }
 
     public function index()
     {
@@ -30,14 +38,15 @@ class DuelController extends Controller
         }
     }
 
+    private function calculateElo($currentElo, $opponentElo, $score, $K = 35)
+    {
+        $expectedScore = 1 / (1 + pow(10, ($opponentElo - $currentElo) / 400));
+        $newElo = $K * ($score - $expectedScore);
+        return round($newElo);
+    }
+
     public function store(Request $request)
     {
-        function calculateElo($currentElo, $opponentElo, $score, $K = 35)
-        {
-            $expectedScore = 1 / (1 + pow(10, ($opponentElo - $currentElo) / 400));
-            $newElo = $K * ($score - $expectedScore);
-            return round($newElo);
-        }
 
         $validatedData = $request->validate([
             'league_id' => 'required',
@@ -47,6 +56,8 @@ class DuelController extends Controller
             'win_user' => 'required|array',
             'lose_user' => 'required|array',
         ]);
+
+        DB::beginTransaction();
 
         try {
             $duel = Duel::create([
@@ -59,83 +70,66 @@ class DuelController extends Controller
                 ->where('type', 0)
                 ->count();
 
-            $winner = $request->win_user;
-            $loser = $request->lose_user;
+            $winners = collect($request->win_user);
+            $losers = collect($request->lose_user);
 
-            $winner_elo_moyen = 0;
-            $loser_elo_moyen = 0;
-
-            foreach ($winner as $key => $value) {
-                $winner_elo_moyen += $value['elo'];
-            }
-
-            foreach ($loser as $key => $value) {
-                $loser_elo_moyen += $value['elo'];
-            }
-
-            $winner_elo_moyen = $winner_elo_moyen / count($winner);
-            $loser_elo_moyen = $loser_elo_moyen / count($loser);
+            $winner_elo_moyen = $winners->avg('elo');
+            $loser_elo_moyen = $losers->avg('elo');
 
             // Calculer le nouveau elo
-            $winner_elo = calculateElo($winner_elo_moyen, $loser_elo_moyen, $validatedData['is_null'] ? 0.5 : 1); // 1 pour une victoire, 0.5 pour un match nul, 0 pour une défaite
-            $loser_elo = calculateElo($loser_elo_moyen, $winner_elo_moyen, $validatedData['is_null'] ? 0.5 : 0); // 1 pour une victoire, 0.5 pour un match nul, 0 pour une défaite
+            $winner_elo = $this->calculateElo($winner_elo_moyen, $loser_elo_moyen, $validatedData['is_null'] ? 0.5 : 1);
+            $loser_elo = $this->calculateElo($loser_elo_moyen, $winner_elo_moyen, $validatedData['is_null'] ? 0.5 : 0);
 
+            $this->processDuelUsers($winners, $duel, $validatedData, $winner_elo, true, $league_user_count);
+            $this->processDuelUsers($losers, $duel, $validatedData, $loser_elo, false, $league_user_count);
 
-            foreach ($winner as $key => $value) {
-                DuelUser::create([
-                    'user_id' => $value['id'],
-                    'duel_id' => $duel['id'],
-                    'league_id' => $validatedData['league_id'],
-                    'league_user_elo_init' => $value['elo'],
-                    'league_user_elo_add' => $winner_elo,
-                    'status' => $request->is_null ? 0.5 : 1
-                ]);
-
-                $league_user = LeagueUser::where('user_id', $value['id'])
-                    ->where('league_id', $validatedData['league_id'])
-                    ->first();
-
-                $league_user->elo += $winner_elo;
-                $league_user->save();
-
-                CoinUser::create([
-                    'user_id' => $value['id'],
-                    'value' => round($winner_elo / 3 * ($league_user_count / 2)),
-                ]);
-
-                // Update user coin
-                $user = User::findOrFail($value['id']);
-                $user->coins += round($winner_elo / 3 * ($league_user_count / 2));
-                $user->save();
-            }
-
-            foreach ($loser as $key => $value) {
-                DuelUser::create([
-                    'user_id' => $value['id'],
-                    'duel_id' => $duel['id'],
-                    'league_id' => $validatedData['league_id'],
-                    'league_user_elo_init' => $value['elo'],
-                    'league_user_elo_add' => $loser_elo,
-                    'status' => $request->is_null ? 0.5 : 0
-                ]);
-
-                $league_user = LeagueUser::where('user_id', $value['id'])
-                    ->where('league_id', $validatedData['league_id'])
-                    ->first();
-
-                $league_user->elo += $loser_elo;
-                $league_user->save();
-            }
-
+            DB::commit();
 
             return response()->json([
                 'message' => 'Duel created successfully',
             ], 201);
         } catch (\Throwable $th) {
+            DB::rollBack();
+
             return response()->json([
                 'message' => 'Error',
                 'error' => $th->getMessage()
             ], 500);
+        }
+    }
+
+    private function processDuelUsers($users, $duel, $validatedData, $eloChange, $isWinner, $league_user_count)
+    {
+        foreach ($users as $value) {
+            DuelUser::create([
+                'user_id' => $value['id'],
+                'duel_id' => $duel->id,
+                'league_id' => $validatedData['league_id'],
+                'league_user_elo_init' => $value['elo'],
+                'league_user_elo_add' => $eloChange,
+                'status' => $isWinner ? ($validatedData['is_null'] ? 0.5 : 1) : 0
+            ]);
+
+            $league_user = LeagueUser::where('user_id', $value['id'])
+                ->where('league_id', $validatedData['league_id'])
+                ->first();
+
+            if ($league_user) {
+                $league_user->elo += $eloChange;
+                $league_user->save();
+            }
+
+            $coinValue = max(0, round($eloChange / 3 * ($league_user_count / 2)));
+            CoinUser::create([
+                'user_id' => $value['id'],
+                'value' => $coinValue,
+            ]);
+
+            $this->rankingService->updateRanking($validatedData['league_id']);
+
+            $user = User::findOrFail($value['id']);
+            $user->coins += $coinValue;
+            $user->save();
         }
     }
 
@@ -194,6 +188,7 @@ class DuelController extends Controller
                     $user->save();
                 }
             }
+            $this->rankingService->updateRanking($league_user['league_id']);
 
 
             return response()->json([

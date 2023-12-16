@@ -32,30 +32,15 @@ return new class extends Migration
      */
     private function createView(): string
     {
-        return "CREATE VIEW view_league_cards AS
+        return "CREATE VIEW view_global_stats AS
         SELECT
-            leagues.id,
-            leagues.icon,
-            leagues.name,
-            user.user_id,
-            user.elo,
-            user.ranking,
-            user.type,
-            leagues.created_at,
-            leagues.updated_at
-        FROM leagues
-        LEFT JOIN league_users AS user
-            ON user.league_id = leagues.id
-        GROUP BY  
-            leagues.id,
-            leagues.icon,
-            leagues.name,
-            user.user_id,
-            user.elo,
-            user.ranking,
-            user.type,
-            leagues.created_at,
-            leagues.updated_at;
+            duel_users.user_id,
+            COUNT(DISTINCT duel_users.duel_id) AS nb_duel,
+            SUM(CASE WHEN duel_users.status = 1 THEN 1 ELSE 0 END) AS nb_win,
+            SUM(CASE WHEN duel_users.status = 0 THEN 1 ELSE 0 END) AS nb_lose,
+            SUM(CASE WHEN duel_users.status = 0.5 THEN 1 ELSE 0 END) AS nb_null
+        FROM duel_users
+        GROUP BY duel_users.user_id;
     ";
     }
 
@@ -66,6 +51,6 @@ return new class extends Migration
      */
     private function dropView(): string
     {
-        return 'DROP VIEW IF EXISTS view_league_cards';
+        return 'DROP VIEW IF EXISTS view_global_stats';
     }
 };

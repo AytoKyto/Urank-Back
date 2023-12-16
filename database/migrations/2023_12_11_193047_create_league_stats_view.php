@@ -32,11 +32,11 @@ return new class extends Migration
      */
     private function createView(): string
     {
-         return "CREATE VIEW view_league_stats AS
+        return "CREATE VIEW view_league_stats AS
          SELECT
              league_users.user_id,
              league_users.league_id,
-             league_users.elo AS elo_moyen,
+             AVG(league_users.elo) AS elo_moyen,  -- ou MAX, MIN, etc.
              COUNT(DISTINCT duel.duel_id) AS nb_duel,
              SUM(CASE WHEN duel.status = 1 THEN 1 ELSE 0 END) AS nb_win,
              SUM(CASE WHEN duel.status = 0 THEN 1 ELSE 0 END) AS nb_lose,
@@ -44,7 +44,6 @@ return new class extends Migration
          FROM league_users
          LEFT JOIN duel_users AS duel
              ON league_users.user_id = duel.user_id
-            -- Potentiellement ajouter une condition pour 'league_id' si disponible
          GROUP BY league_users.user_id, league_users.league_id;
     ";
     }

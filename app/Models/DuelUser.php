@@ -12,6 +12,7 @@ class DuelUser extends Model
     protected $fillable = [
         'user_id',
         'duel_id',
+        'ranking',
         'league_id',
         'league_user_elo_init',
         'league_user_elo_add',
