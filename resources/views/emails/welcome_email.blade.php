@@ -2,7 +2,7 @@
 <html><head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<title>Product Trial Email Template</title>
+	<title>{{ $title }}</title>
 	<style type="text/css">
 		html {
 			-webkit-text-size-adjust: none;
@@ -65,7 +65,7 @@
 										<table cellpadding="0" cellspacing="0" border="0" width="100%" em="atom">
 											<tr>
 												<td class="em-mob-text_align-center">
-													<img src="https://cdn.useblocks.io/1865/230908_431_9wA8jv7.png" width="99" border="0" alt="" style="display: inline-block; width: 100%; max-width: 99px;">
+													<img src="https://cdn.useblocks.io/19219/231225_1478_Oc2xpBV.png" width="246" border="0" alt="" style="display: inline-block; width: 100%; max-width: 246px;">
 												</td>
 											</tr>
 										</table>
@@ -101,12 +101,12 @@
 										
 										
 <table cellpadding="0" cellspacing="0" border="0" width="100%" em="atom"><tr><td style="padding-bottom: 15px;">
-  <div style="font-family: Verdana, Geneva, sans-serif; font-size: 24px; line-height: 24px; color: #333333;" align="center"><strong>Your trial starts now</strong></div>
+  <div style="font-family: Verdana, Geneva, sans-serif; font-size: 24px; line-height: 24px; color: #333333;" align="center"><strong>{{ $title }}</strong></div>
 </td></tr></table>
 
 										
 <table cellpadding="0" cellspacing="0" border="0" width="100%" em="atom"><tr><td style="padding-bottom: 10px;">
-  <div style="font-family: Verdana, Geneva, sans-serif; font-size: 16px; line-height: 24px; color: #333333;" align="center">Thank you for choosing our product! Your free trial period will start after you click the button below and log in you account.</div>
+  <div style="font-family: Verdana, Geneva, sans-serif; font-size: 16px; line-height: 24px; color: #333333;" align="center">{{ $content }}</div>
 </td></tr></table>
 
 										<table cellpadding="0" cellspacing="0" border="0" width="100%" em="atom"><tr><td style="padding: 15px 0px 10px;" align="center">
@@ -129,7 +129,7 @@
 										<table cellpadding="0" cellspacing="0" border="0" width="100%" em="atom">
 											<tr>
 												<td style="padding-bottom: 24px;">
-													<img src="https://cdn.useblocks.io/1865/230908_431_9wA8jv7.png" width="99" border="0" alt="" style="display: inline-block; width: 100%; max-width: 99px;">
+													<img src="https://cdn.useblocks.io/19219/231225_1478_5uY0LMB.png" width="99" border="0" alt="" style="display: inline-block; width: 100%; max-width: 99px;">
 												</td>
 											</tr>
 										</table>
@@ -163,7 +163,7 @@
 									<td width="270" valign="top" class="em-mob-wrap em-mob-width-100perc">
 										
 <table cellpadding="0" cellspacing="0" border="0" width="100%" em="atom"><tr><td style="padding-bottom: 10px;">
-  <div style="font-family: Verdana, Geneva, sans-serif; font-size: 16px; line-height: 24px; color: #ffca62;"><strong><span style="color: #ffca62;">The</span></strong><strong style="color: #b1ff18;"> </strong><strong>Company</strong><strong style="color: #b1ff18;"> </strong><strong>Name</strong></div>
+  <div style="font-family: Verdana, Geneva, sans-serif; font-size: 16px; line-height: 24px; color: #000000;"><strong>The</strong><strong style="color: #b1ff18;"> </strong><strong>Company</strong><strong style="color: #b1ff18;"> </strong><strong>Name</strong></div>
 </td></tr></table>
 <table cellpadding="0" cellspacing="0" border="0" width="100%" em="atom"><tr><td style="padding-bottom: 10px;">
   <div style="font-family: Verdana, Geneva, sans-serif; font-size: 14px; line-height: 24px; color: #050a06;">Think big, start small, act now.</div>

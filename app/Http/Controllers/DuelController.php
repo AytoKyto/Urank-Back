@@ -143,11 +143,11 @@ class DuelController extends Controller
             $userId = Auth::id();
             $duel = Duel::findOrFail($id);
             $duel_users = DuelUser::where('duel_id', $duel->id)->get();
-            
-            $duel_user_main = $duel_users->filter(function($item) use ($userId) {
+
+            $duel_user_main = $duel_users->filter(function ($item) use ($userId) {
                 return $item->user_id === $userId;
             });
-            
+
 
             return response()->json([
                 'message' => 'Duel retrieved successfully',
@@ -166,14 +166,19 @@ class DuelController extends Controller
 
     public function update(Request $request, $id)
     {
+        DB::beginTransaction(); // Début de la transaction
         try {
             $duel = Duel::findOrFail($id);
             $duel->update($request->all());
+
+            DB::commit(); // Commit de la transaction
+
             return response()->json([
                 'message' => 'Duel updated successfully',
                 'data' => $duel
             ], 200);
         } catch (\Throwable $th) {
+            DB::rollBack(); // Rollback en cas d'échec de l'envoi de l'email
             return response()->json([
                 'message' => 'Error',
                 'error' => $th->getMessage()
@@ -183,6 +188,9 @@ class DuelController extends Controller
 
     public function destroy($id)
     {
+        DB::beginTransaction(); // Début de la transaction
+        $
+    
         try {
             $duel_user = DuelUser::where('duel_id', $id)
                 ->get();
@@ -205,11 +213,13 @@ class DuelController extends Controller
             }
             $this->rankingService->updateRanking($league_user['league_id']);
 
+            DB::commit(); // Commit de la transaction
 
             return response()->json([
                 'message' => 'Duel created successfully',
             ], 201);
         } catch (\Throwable $th) {
+            DB::rollBack(); // Rollback en cas d'échec de l'envoi de l'email
             return response()->json([
                 'message' => 'Error',
                 'error' => $th->getMessage()
