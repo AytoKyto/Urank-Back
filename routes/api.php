@@ -10,6 +10,7 @@ use App\Http\Controllers\DuelController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashController;
 use App\Http\Controllers\StoreController;
+use App\Http\Controllers\GuestController;
 
 
 
@@ -33,6 +34,7 @@ Route::post('register', [AuthController::class, 'register']);
 Route::post('login', [AuthController::class, 'login']);
 Route::post('/password/forgot', [AuthController::class, 'forgotPassword']);
 Route::post('/password/reset', [AuthController::class, 'resetPassword']);
+Route::post('/guest/register', [GuestController::class, 'guestInvitation']);
 
 
 Route::middleware('auth:sanctum')->group(function () {
