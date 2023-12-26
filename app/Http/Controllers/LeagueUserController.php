@@ -6,9 +6,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\LeagueUser;
+use App\Services\RankingService;
+use Illuminate\Support\Facades\DB;
 
-class LeagueUserController extends Controller {
-    public function index() {
+class LeagueUserController extends Controller
+{
+    protected $rankingService;
+
+    public function __construct(RankingService $rankingService)
+    {
+        $this->rankingService = $rankingService;
+    }
+
+    public function index()
+    {
         try {
             $leagueUsers = LeagueUser::all();
             return response()->json([
@@ -23,14 +34,24 @@ class LeagueUserController extends Controller {
         }
     }
 
-    public function store(Request $request) {
+    public function store(Request $request)
+    {
+        DB::beginTransaction();
+
         try {
             $leagueUser = LeagueUser::create($request->all());
+
+            $this->rankingService->updateRanking($request['league_id']);
+
+            DB::commit();
+
             return response()->json([
                 'message' => 'League user created successfully',
                 'data' => $leagueUser
             ], 201);
         } catch (\Throwable $th) {
+            DB::rollBack();
+
             return response()->json([
                 'message' => 'Error',
                 'error' => $th->getMessage()
@@ -38,7 +59,8 @@ class LeagueUserController extends Controller {
         }
     }
 
-    public function show($id) {
+    public function show($id)
+    {
         try {
             $leagueUser = LeagueUser::findOrFail($id);
             return response()->json([
@@ -54,7 +76,8 @@ class LeagueUserController extends Controller {
     }
 
 
-    public function update(Request $request, $id) {
+    public function update(Request $request, $id)
+    {
         try {
             $leagueUser = LeagueUser::findOrFail($id);
             $leagueUser->update($request->all());
@@ -70,14 +93,19 @@ class LeagueUserController extends Controller {
         }
     }
 
-    public function destroy($id) {
+    public function destroy($id)
+    {
+        DB::beginTransaction();
         try {
             $leagueUser = LeagueUser::findOrFail($id);
             $leagueUser->delete();
+            $this->rankingService->updateRanking($leagueUser['league_id']);
+            DB::commit();
             return response()->json([
                 'message' => 'League user deleted successfully'
             ], 204);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Error',
                 'error' => $th->getMessage()
