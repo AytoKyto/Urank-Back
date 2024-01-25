@@ -49,6 +49,7 @@ Route::resource('leagues', LeagueController::class);
 
 // Routes pour le modèle LeagueUser
 Route::resource('league-users', LeagueUserController::class);
+Route::get('users-in-league/{id}', [LeagueUserController::class, 'showUserInLeague']);
 
 // Routes pour le modèle Duel
 Route::resource('duels', DuelController::class);

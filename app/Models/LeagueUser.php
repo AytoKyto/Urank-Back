@@ -13,7 +13,8 @@ class LeagueUser extends Model {
     protected $table = 'league_users';
     protected $fillable = ['user_id', 'league_id', 'elo', 'type'];
 
-    protected $with = ['user'];
+    // Correction ici : fusion des deux lignes en une seule
+    protected $with = ['user', 'league'];
 
     public function user() {
         return $this->belongsTo(User::class, 'user_id');

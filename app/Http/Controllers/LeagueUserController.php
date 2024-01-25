@@ -8,6 +8,7 @@ use Illuminate\Http\Request;
 use App\Models\LeagueUser;
 use App\Services\RankingService;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 
 class LeagueUserController extends Controller
 {
@@ -21,10 +22,29 @@ class LeagueUserController extends Controller
     public function index()
     {
         try {
-            $leagueUsers = LeagueUser::all();
+            $id = Auth::id();
+            $leagueUser = LeagueUser::where('user_id', $id)->get();
+
             return response()->json([
                 'message' => 'League users retrieved successfully',
-                'data' => $leagueUsers
+                'data' => $leagueUser
+            ], 200);
+        } catch (\Throwable $th) {
+            return response()->json([
+                'message' => 'Error',
+                'error' => $th->getMessage()
+            ], 500);
+        }
+    }
+
+    public function showUserInLeague($id)
+    {
+        try {
+            $leagueUser = LeagueUser::where('league_id', $id)->get();
+
+            return response()->json([
+                'message' => 'League users retrieved successfully',
+                'data' => $leagueUser
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -39,17 +59,36 @@ class LeagueUserController extends Controller
         DB::beginTransaction();
 
         try {
+            // Vérifiez si l'utilisateur existe déjà dans la ligue
+            $userControlData = LeagueUser::where([
+                ['user_id', '=', $request['user_id']],
+                ['league_id', '=', $request['league_id']]
+            ])->get();
+
+            // Si l'utilisateur existe déjà, renvoyez une erreur
+            if ($userControlData->isNotEmpty()) {
+                return response()->json([
+                    'message' => 'Error',
+                    'error' => "L'utilisateur existe déjà dans cette ligue"
+                ], 409); // 409 Conflict ou un autre code approprié
+            }
+
+            // Créez un nouvel enregistrement LeagueUser
             $leagueUser = LeagueUser::create($request->all());
 
+            // Mettez à jour le classement
             $this->rankingService->updateRanking($request['league_id']);
 
+            // Validez la transaction
             DB::commit();
 
+            // Renvoyez une réponse de succès
             return response()->json([
                 'message' => 'League user created successfully',
                 'data' => $leagueUser
             ], 201);
         } catch (\Throwable $th) {
+            // Annulez la transaction en cas d'erreur
             DB::rollBack();
 
             return response()->json([
@@ -59,13 +98,18 @@ class LeagueUserController extends Controller
         }
     }
 
+
     public function show($id)
     {
         try {
-            $leagueUser = LeagueUser::findOrFail($id);
+            if ($id === "0") {
+                $id = Auth::id();
+            }
+
+            $leagueUser = LeagueUser::where('user_id', $id)->get();
             return response()->json([
                 'message' => 'League user retrieved successfully',
-                'leagueUser' => $leagueUser
+                'data' => $leagueUser
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
