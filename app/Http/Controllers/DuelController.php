@@ -26,7 +26,8 @@ class DuelController extends Controller
     public function index()
     {
         try {
-            $duels = Duel::all();
+            $id = Auth::id();
+            $duels = DuelUser::where('user_id', $id)->get();
             return response()->json([
                 'message' => 'Duels retrieved successfully',
                 'data' => $duels
@@ -51,7 +52,6 @@ class DuelController extends Controller
 
         $validatedData = $request->validate([
             'league_id' => 'required',
-            'author_id' => 'required',
             'is_null' => 'required|boolean',
             'description' => 'nullable',
             'win_user' => 'required|array',
@@ -61,9 +61,11 @@ class DuelController extends Controller
         DB::beginTransaction();
 
         try {
+            $id = Auth::id();
+
             $duel = Duel::create([
                 'league_id' => $validatedData['league_id'],
-                'author_id' => $validatedData['author_id'],
+                'author_id' => $id,
                 'description' => $validatedData['description']
             ]);
 
@@ -189,8 +191,6 @@ class DuelController extends Controller
     public function destroy($id)
     {
         DB::beginTransaction(); // Début de la transaction
-        $
-    
         try {
             $duel_user = DuelUser::where('duel_id', $id)
                 ->get();

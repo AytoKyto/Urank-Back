@@ -30,16 +30,14 @@ class DashController extends Controller
 
             // Vérifier si toutes les données sont définies
             return response()->json([
-                'status' => true,
                 'message' => 'Requête effectuée avec succès',
-                'globalStats' => $global_stats,
+                'global_stats' => $global_stats,
                 'league' => $league,
-                'duelData' => $duel_data,
+                'duel_data' => $duel_data,
             ], 200);
         } catch (\Exception $e) {
             // Retourner une erreur en cas d'exception
             return response()->json([
-                'status' => false,
                 'message' => 'Erreur lors de la requête',
                 'error' => $e->getMessage()
             ], 500);

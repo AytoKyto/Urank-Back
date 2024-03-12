@@ -33,6 +33,18 @@ class GetDataService
         return $league_card_user_data;
     }
 
+    public function leagueUser($leagueId, $loop)
+    {
+        // Récupérer tous les utilisateurs de la ligue, triés par ELO
+        $league_card_data = LeagueUser::where('league_id', $leagueId)
+            ->orderBy('ranking', 'asc')
+            ->limit($loop)
+            ->get();
+
+        // Retourner les données ou effectuer d'autres opérations
+        return $league_card_data;
+    }
+
     public function duelCard($userId, $loop)
     {
         $duels_data = DuelUser::where('user_id', $userId)

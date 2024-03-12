@@ -61,7 +61,7 @@ class LeagueController extends Controller
             $league_data = League::where('id', $id)
                 ->get();
 
-            $league = $this->getDataService->leagueCard($userId, 3);
+            $league = $this->getDataService->leagueUser($id, 3);
             $duel_data = $this->getDataService->duelCard($userId, 4);
 
             $global_stats = DB::table('view_league_stats')
