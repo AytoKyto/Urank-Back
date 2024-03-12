@@ -146,10 +146,18 @@ class DuelController extends Controller
             $duel = Duel::findOrFail($id);
             $duel_users = DuelUser::where('duel_id', $duel->id)->get();
 
-            $duel_user_main = $duel_users->filter(function ($item) use ($userId) {
+            $duel_user_main = $duel_users->first(function ($item) use ($userId) {
                 return $item->user_id === $userId;
             });
 
+            // Separating the users into winners and losers
+            $winners = $duel_users->filter(function ($item) {
+                return $item->status === 1;
+            });
+
+            $losers = $duel_users->filter(function ($item) {
+                return $item->status === 0;
+            });
 
             return response()->json([
                 'message' => 'Duel retrieved successfully',
@@ -157,6 +165,8 @@ class DuelController extends Controller
                 'duel_users' => $duel_users,
                 'nbr_users' => count($duel_users),
                 'duel_user_main' => $duel_user_main,
+                'winners' => $winners->values(), // Re-index the collection
+                'losers' => $losers->values(), // Re-index the collection
             ], 200);
         } catch (\Throwable $th) {
             return response()->json([
@@ -165,6 +175,7 @@ class DuelController extends Controller
             ], 500);
         }
     }
+
 
     public function update(Request $request, $id)
     {
