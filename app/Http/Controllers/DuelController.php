@@ -27,7 +27,9 @@ class DuelController extends Controller
     {
         try {
             $id = Auth::id();
-            $duels = DuelUser::where('user_id', $id)->get();
+            $duels = DuelUser::where('user_id', $id)
+            ->orderBy('created_at', 'desc')
+            ->get();
             return response()->json([
                 'message' => 'Duels retrieved successfully',
                 'data' => $duels
@@ -90,7 +92,7 @@ class DuelController extends Controller
 
             return response()->json([
                 'message' => 'Duel created successfully',
-            ], 201);
+            ], 200);
         } catch (\Throwable $th) {
             DB::rollBack();
 

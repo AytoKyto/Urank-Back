@@ -23,7 +23,9 @@ class LeagueController extends Controller
     public function index()
     {
         try {
-            $leagues = League::all();
+            $id = Auth::id();
+            $leagues = League::where('admin_user_id', $id)->get();
+
             return response()->json([
                 'message' => 'Leagues retrieved successfully',
                 'data' => $leagues
@@ -40,12 +42,27 @@ class LeagueController extends Controller
     public function store(Request $request)
     {
         try {
-            $league = League::create($request->all());
+            $id = Auth::id();
+            DB::commit();
+
+             $leagueData = League::create([
+                'admin_user_id' => $id,
+                'name' => $request['name'],
+                'icon' => $request['icon']
+            ]);
+
+            LeagueUser::create([
+                'user_id' => $id,
+                'league_id' => $leagueData['id'],
+                'elo' => 1000,
+                'type' => 2
+            ]);
+
             return response()->json([
-                'message' => 'League created successfully',
-                'data' => $league
-            ], 201);
+                'message' => 'League created successfully'
+            ], 200);
         } catch (\Throwable $th) {
+            DB::rollBack();
             return response()->json([
                 'message' => 'Error',
                 'error' => $th->getMessage()
@@ -62,7 +79,7 @@ class LeagueController extends Controller
                 ->get();
 
             $league = $this->getDataService->leagueUser($id, 3);
-            $duel_data = $this->getDataService->duelCard($userId, 4);
+            $duel_data = $this->getDataService->duelCardInLeague($userId, $id, 4);
 
             $global_stats = DB::table('view_league_stats')
                 ->where('user_id', $userId)

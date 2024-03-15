@@ -33,19 +33,23 @@ return new class extends Migration
     private function createView(): string
     {
         return "CREATE VIEW view_league_stats AS
-         SELECT
-             league_users.user_id,
-             league_users.league_id,
-             AVG(league_users.elo) AS elo_moyen,  -- ou MAX, MIN, etc.
-             COUNT(DISTINCT duel.duel_id) AS nb_duel,
-             SUM(CASE WHEN duel.status = 1 THEN 1 ELSE 0 END) AS nb_win,
-             SUM(CASE WHEN duel.status = 0 THEN 1 ELSE 0 END) AS nb_lose,
-             SUM(CASE WHEN duel.status = 0.5 THEN 1 ELSE 0 END) AS nb_null,
-             SUM(CASE WHEN duel.status = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT duel.duel_id) * 100 AS win_rate
-         FROM league_users
-         LEFT JOIN duel_users AS duel
-             ON league_users.user_id = duel.user_id
-         GROUP BY league_users.user_id, league_users.league_id;
+        SELECT
+            league_users.user_id,
+            league_users.league_id,
+            AVG(league_users.elo) AS elo_moyen,  -- You might need to adjust this depending on your data model
+            COUNT(DISTINCT duel.duel_id) AS nb_duel,
+            SUM(CASE WHEN duel.status = 1 THEN 1 ELSE 0 END) AS nb_win,
+            SUM(CASE WHEN duel.status = 0 THEN 1 ELSE 0 END) AS nb_lose,
+            SUM(CASE WHEN duel.status = 0.5 THEN 1 ELSE 0 END) AS nb_null,
+            CASE 
+                WHEN COUNT(DISTINCT duel.duel_id) > 0 THEN 
+                    SUM(CASE WHEN duel.status = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT duel.duel_id) * 100 
+                ELSE 0 
+            END AS win_rate
+        FROM league_users
+        LEFT JOIN duel_users AS duel
+            ON league_users.user_id = duel.user_id AND league_users.league_id = duel.league_id
+        GROUP BY league_users.user_id, league_users.league_id;        
     ";
     }
 

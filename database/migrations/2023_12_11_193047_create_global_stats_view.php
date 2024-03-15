@@ -35,13 +35,14 @@ return new class extends Migration
         return "CREATE VIEW view_global_stats AS
         SELECT
             duel_users.user_id,
+            duel_users.league_id,
             COUNT(DISTINCT duel_users.duel_id) AS nb_duel,
             SUM(CASE WHEN duel_users.status = 1 THEN 1 ELSE 0 END) AS nb_win,
             SUM(CASE WHEN duel_users.status = 0 THEN 1 ELSE 0 END) AS nb_lose,
             SUM(CASE WHEN duel_users.status = 0.5 THEN 1 ELSE 0 END) AS nb_null,
             SUM(CASE WHEN duel_users.status = 1 THEN 1 ELSE 0 END) / COUNT(DISTINCT duel_users.duel_id) * 100 AS win_rate
         FROM duel_users
-        GROUP BY duel_users.user_id;
+        GROUP BY duel_users.user_id, duel_users.league_id;
     ";
     }
 
