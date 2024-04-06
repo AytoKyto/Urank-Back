@@ -78,7 +78,7 @@ class LeagueController extends Controller
             $league_data = League::where('id', $id)
                 ->get();
 
-            $league = $this->getDataService->leagueUser($id, 3);
+            $league = $this->getDataService->leagueUser($id, 10);
             $duel_data = $this->getDataService->duelCardInLeague($userId, $id, 4);
 
             $global_stats = DB::table('view_league_stats')
@@ -123,6 +123,7 @@ class LeagueController extends Controller
         try {
             $league = League::findOrFail($id);
             $league->delete();
+            LeagueUser::where('league_id', $id)->delete();
             return response()->json([
                 'message' => 'League deleted successfully'
             ], 204);

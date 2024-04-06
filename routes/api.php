@@ -6,6 +6,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserPaymentController;
 use App\Http\Controllers\LeagueController;
 use App\Http\Controllers\LeagueUserController;
+use App\Http\Controllers\InvitationsUserController;
 use App\Http\Controllers\DuelController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\DashController;
@@ -49,7 +50,11 @@ Route::middleware('auth:sanctum')->group(function () {
 
    // Routes pour le modèle LeagueUser
    Route::resource('league-users', LeagueUserController::class);
+   Route::delete('league-users/{userId}/{leagueId}', [LeagueUserController::class, 'destroy']);
    Route::get('users-in-league/{id}', [LeagueUserController::class, 'showUserInLeague']);
+
+   // Routes pour le modèle InvitationsUser
+   Route::resource('invitations_user', InvitationsUserController::class);
 
    // Routes pour le modèle Duel
    Route::resource('duels', DuelController::class);

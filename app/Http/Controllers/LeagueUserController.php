@@ -6,6 +6,8 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\LeagueUser;
+use App\Models\User;
+use App\Models\InvitationsUser;
 use App\Services\RankingService;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -59,44 +61,76 @@ class LeagueUserController extends Controller
         DB::beginTransaction();
 
         try {
-            // Vérifiez si l'utilisateur existe déjà dans la ligue
-            $userControlData = LeagueUser::where([
-                ['user_id', '=', $request['user_id']],
-                ['league_id', '=', $request['league_id']]
-            ])->get();
+            $id = Auth::id();
+            $user_liste = $request['users_id'];
+            $user_guest = $request['user_guest'];
+            $user_add = $request['user_add'];
+            $league_id = $request['league_id'];
 
-            // Si l'utilisateur existe déjà, renvoyez une erreur
-            if ($userControlData->isNotEmpty()) {
-                return response()->json([
-                    'message' => 'Error',
-                    'error' => "L'utilisateur existe déjà dans cette ligue"
-                ], 409); // 409 Conflict ou un autre code approprié
+
+            // Initialize $user_guest_data outside of the if scope
+            $user_guest_data = null;
+
+            // Corrected the logical condition here
+            if (!empty($user_guest)) {
+                $user_guest_data = User::create([
+                    "name" => $user_guest,
+                    // Improved email uniqueness
+                    "email" => uniqid() . "@guest.test",
+                    "status" => "Active",
+                    "type" => 1,
+                    "avatar" => "default_avatar.png",
+                    "bg_color" => "#FFFFFF", // Example default color
+                    "bg_avatar" => "default_bg.png",
+                    "border_avatar" => "default_border.png"
+                ]);
             }
 
-            // Créez un nouvel enregistrement LeagueUser
-            $leagueUser = LeagueUser::create($request->all());
+            if ($user_add !== 0) {
+                if (!empty($user_add)) {
+                    if (!User::where('id', $user_add)->get()) {
+                        $user_liste[] = $user_add; // Corrected method to add to array
+                    } else {
+                        return response()->json(['message' => 'L\'utilisateur n\'existe pas'], 500);
+                    }
+                }
+            }
 
-            // Mettez à jour le classement
-            $this->rankingService->updateRanking($request['league_id']);
 
-            // Validez la transaction
+            // Add the guest user's ID to the user list if a guest was created
+            if ($user_guest_data) {
+                $user_liste[] = $user_guest_data->id; // Corrected method to add to array
+            }
+
+            foreach ($user_liste as $user_id) {
+                if (!LeagueUser::where('user_id', $user_id)->where('league_id', $league_id)->exists()) {
+                    LeagueUser::create([
+                        'user_id' => $user_id,
+                        'league_id' => $league_id,
+                        'elo' => 1000,
+                        'type' => 0,
+                    ]);
+
+                    if (!InvitationsUser::where('invited_user_id', $user_id)->where('user_id', $id)->exists()) {
+                        InvitationsUser::create([
+                            'user_id' => $id,
+                            'invited_user_id' => $user_id
+                        ]);
+                    }
+                }
+            }
+
+            // Assuming rankingService->updateRanking is correctly implemented
+            $this->rankingService->updateRanking($league_id);
+
             DB::commit();
-
-            // Renvoyez une réponse de succès
-            return response()->json([
-                'message' => 'League user created successfully',
-                'data' => $leagueUser
-            ], 201);
+            return response()->json(['message' => 'League user created successfully'], 201);
         } catch (\Throwable $th) {
-            // Annulez la transaction en cas d'erreur
             DB::rollBack();
-
-            return response()->json([
-                'message' => 'Error',
-                'error' => $th->getMessage()
-            ], 500);
+            return response()->json(['message' => $th->getMessage(), 'error' => $th->getMessage()], 500);
         }
     }
+
 
 
     public function show($id)
@@ -137,11 +171,11 @@ class LeagueUserController extends Controller
         }
     }
 
-    public function destroy($id)
+    public function destroy(int $userId, int $leagueId)
     {
         DB::beginTransaction();
         try {
-            $leagueUser = LeagueUser::findOrFail($id);
+            $leagueUser = LeagueUser::where('user_id', $userId)->where('league_id', $leagueId)->first();
             $leagueUser->delete();
             $this->rankingService->updateRanking($leagueUser['league_id']);
             DB::commit();
