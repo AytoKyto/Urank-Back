@@ -18,3 +18,4 @@ Urank est une application iOS qui permet de créer des ligues entre amis. Au sei
 ## Statut du projet
 
 L'application est actuellement en cours de développement et de test. Elle n'est pas encore disponible pour un déploiement général.
+
